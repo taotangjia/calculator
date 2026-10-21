@@ -1,0 +1,47 @@
+# .github/workflows/ci-calculator.yml
+# Lab 5: GitHub Actions CI pipeline for the Calculator project.
+# Runs automatically on every push to main and on pull requests targeting main.
+
+name: Calculator Java CI
+
+# Task 1: Trigger rules
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build-test:
+    # Runner environment: Ubuntu latest virtual machine
+    runs-on: ubuntu-latest
+
+    # ========= Task 4 (Bonus): JDK build matrix =========
+    # Uncomment the lines below to build & test on multiple JDK versions in parallel.
+    # strategy:
+    #   matrix:
+    #     java-version: [17, 21]
+    # ====================================================
+
+    steps:
+      # Step 1: Checkout source code from the repository
+      - name: Checkout source code
+        uses: actions/checkout@v4
+
+      # Step 2: Set up JDK, matching the local development environment (JDK 21)
+      - name: Set up JDK
+        uses: actions/setup-java@v4
+        with:
+          # java-version: ${{ matrix.java-version }}   # use this line for Task 4 bonus
+          java-version: 21
+          distribution: temurin
+          # Cache Maven dependencies to speed up repeated builds
+          cache: maven
+
+      # Step 3: Compile all Java source files
+      - name: Compile source code
+        run: mvn clean compile
+
+      # Step 4: Run all JUnit 5 unit tests from Lab 4
+      - name: Run all JUnit tests
+        run: mvn test
