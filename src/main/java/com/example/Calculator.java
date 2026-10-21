@@ -13,7 +13,7 @@ public class Calculator {
      * @return a + b
      */
     public int add(int a, int b) {
-        return a + b;
+        return a - b; // BUG (intentional, for Lab5 red CI demo)
     }
 
     /**
