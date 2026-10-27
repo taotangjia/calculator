@@ -1,6 +1,7 @@
 # .github/workflows/ci-calculator.yml
-# Lab 5: GitHub Actions CI pipeline for the Calculator project.
-# Runs automatically on every push to main and on pull requests targeting main.
+# Lab 5 + Lab 6: GitHub Actions CI pipeline for the Calculator project.
+# Lab 5: compile + unit test. Lab 6: build a Docker image after tests pass,
+# and optionally push it to Docker Hub on main.
 
 name: Calculator Java CI
 
@@ -45,3 +46,43 @@ jobs:
       # Step 4: Run all JUnit 5 unit tests from Lab 4
       - name: Run all JUnit tests
         run: mvn test
+
+  # ========= Lab 6: Docker build & (optional) push =========
+  build-docker:
+    # Only run after the unit tests have passed.
+    needs: build-test
+    runs-on: ubuntu-latest
+    steps:
+      # Checkout the source code (includes the Dockerfile)
+      - name: Checkout source code
+        uses: actions/checkout@v4
+
+      # Set up Docker Buildx (needed for efficient image builds)
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      # Always build the image so we can verify the Dockerfile works
+      - name: Build Docker image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: ./Dockerfile
+          push: false
+          tags: calculator:lab6
+
+      # Optional advanced: only login & push on main when the secrets exist
+      - name: Login to Docker Hub
+        if: github.ref == 'refs/heads/main' && (secrets.DOCKERHUB_USERNAME != '' && secrets.DOCKERHUB_TOKEN != '')
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Push Docker image to Docker Hub
+        if: github.ref == 'refs/heads/main' && (secrets.DOCKERHUB_USERNAME != '' && secrets.DOCKERHUB_TOKEN != '')
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: ./Dockerfile
+          push: true
+          tags: ${{ secrets.DOCKERHUB_USERNAME }}/calculator:lab6

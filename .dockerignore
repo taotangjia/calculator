@@ -1,0 +1,10 @@
+# Exclude build output and IDE files from the Docker build context
+target/
+*.class
+.idea/
+*.iml
+.vscode/
+.git/
+*.log
+Thumbs.db
+.DS_Store
